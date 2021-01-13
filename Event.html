@@ -1,0 +1,160 @@
+<!-- 事件委托 -->
+<ul id="ul-event">
+  <li>l1</li>
+  <li><span>l2</span></li>
+</ul>
+<!-- 点击穿透 -->
+<style type="text/css">
+  body {
+    margin: 0;
+  }
+
+  .container {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    display: none;
+    /* 隐藏测试穿透事件 */
+  }
+
+  .layer-title {
+    width: 100%;
+    margin: 50px 0;
+    text-align: center;
+  }
+
+  .layer-action {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .btn {
+    background-color: #08c;
+    border: 0;
+    color: #fff;
+    height: 30px;
+    line-height: 30px;
+    width: 100px;
+  }
+
+  #underLayer {
+    background-color: #eee;
+    width: 100%;
+    height: 100%;
+    line-height: 500px;
+    margin: 30px auto 1000px;
+    text-align: center;
+  }
+
+  #popupLayer {
+    /*display: none;*/
+    background-color: #fff;
+    width: 80%;
+    height: 200px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-left: -40%;
+    margin-top: -100px;
+    z-index: 1;
+  }
+
+  #bgMask {
+    display: none; 
+    /* 隐藏测试穿透事件 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+</style>
+<div class="container">
+  <div id="underLayer">底层元素</div>
+
+  <div id="popupLayer">
+    <div class="layer-title">弹出层</div>
+    <div class="layer-action">
+      <button class="btn" id="closePopup">关闭</button>
+    </div>
+  </div>
+</div>
+<div id="bgMask"></div>
+<script>
+  /********************事件委托  ****************************/
+  //就是把事件委托给别的元素， 比如，监听父元素事件，然后子元素的事件就会被触发， 从而不用一个一个监听子元素事件。
+  //   比如 focus、blur 之类的事件本身没有事件冒泡机制，所以无法委托；
+
+  // mousemove、mouseout 这样的事件，虽然有事件冒泡，但是只能不断通过位置去计算定位，对性能消耗高，因此也是不适合于事件委托的；
+  document.getElementById("ul-event").addEventListener("click", function (e) {
+    console.log("click node:", e.target, e.target.innerHTML)
+  })
+  /********************事件防抖和事件节流 ****************************/
+  //防止某个事件在短时间之内被触发，然后多次执行回调函数
+  //应用场景   搜索框，事件触发提交数据
+  //解决思路， 写个定时器，或者计算时间间隔，然后规定在多少时间之内，不能重复执行回调函数。
+  // 相同点：
+
+  // 都可以通过使用 setTimeout 实现。
+  // 目的都是，降低回调执行频率。节省计算资源。
+  // 不同点：
+
+  // 函数防抖，在一段连续操作结束后，处理回调，利用clearTimeout 和 setTimeout实现。函数节流，在一段连续操作中，每一段时间只执行一次，频率较高的事件中使用来提高性能。
+  // 函数防抖关注一定时间连续触发的事件只在最后执行一次，而函数节流侧重于一段时间内只执行一次。
+
+  function debounce(fn, delay) {
+    var timer; // 维护一个 timer
+    return function () {
+      var _this = this; // 取debounce执行作用域的this
+      var args = arguments;
+      if (timer) {
+        clearTimeout(timer);
+      }
+      timer = setTimeout(function () {
+        fn.apply(_this, args); // 用apply指向调用debounce的对象，相当于_this.fn(args);
+      }, delay);
+    };
+  }
+  function testDebounce(e, content) {
+    // console.log(e, content);
+  }
+  var testDebounceFn = debounce(testDebounce, 1000); // 防抖函数
+  document.onmousemove = function (e) {
+    testDebounceFn(e, 'debounce'); // 给防抖函数传参
+  }
+
+  /********************事件点击穿透****************************/
+  // PC的点击事件  执行顺序是 mousedown -> mouseup -> click 三步。
+  // 手机的常用事件是 touch  touch事件包含touchstart、touchmove、touchend   通常包含  屏幕上有几个手指，有多少个手指在当前触发的元素上
+  // 手指触发触摸事件的过程为：touchstart -> touchmove -> touchend。
+  // 点击穿透就是 点击了touch事件  然后隐藏了元素，导致该元素下面的元素触发了点击事件，然后出现了bug
+  // 移动端浏览器提供了一个特殊的功能：双击放大。300ms的延迟就是来自于这里
+  // 解决办法 
+  // touchend 后间隔300ms 再隐藏元素 
+  // 整个系统都用 touch 或者click
+  // 搞一个透明遮罩
+
+  document.getElementById('closePopup').addEventListener('touchend', function (e) {
+    console.log("touch", (new Date()).getTime())
+    document.getElementById('popupLayer').style.display = 'none';
+    document.getElementById('bgMask').style.display = 'none';
+  });
+
+  document.getElementById("closePopup").addEventListener("click", function () {
+    console.log("click", (new Date()).getTime())  
+    // click 事件会在touchend 事件触发大概300ms后触发，如果这时候元素被隐藏，那点击这个动作就被底下的元素捕获到。 
+  })
+
+  document.getElementById('underLayer').addEventListener('click', function () {
+    console.log('underLayer clicked');
+  });
+
+  
+
+
+
+
+</script>
