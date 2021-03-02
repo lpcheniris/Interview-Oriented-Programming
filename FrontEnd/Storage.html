@@ -1,0 +1,23 @@
+<button id="btn-1">Click add 1 in localStorage</button>
+<button id="btn-2">Click add 1 in sessionStorage</button>
+
+<script>
+  document.getElementById("btn-1").addEventListener("click", function () {
+    let addOneLocalStorage = Number(localStorage.getItem("addOneLocalStorage"))
+    if (addOneLocalStorage) {
+      addOneLocalStorage++
+      localStorage.setItem("addOneLocalStorage", addOneLocalStorage)
+    } else {
+      localStorage.setItem("addOneLocalStorage", 1)
+    }
+  })
+  document.getElementById("btn-2").addEventListener("click", function () {
+    let addOneSessionStorage = Number(sessionStorage.getItem("addOneSessionStorage"))
+    if (addOneSessionStorage) {
+      addOneSessionStorage++
+      sessionStorage.setItem("addOneSessionStorage", addOneSessionStorage)
+    } else {
+      sessionStorage.setItem("addOneSessionStorage", 1)
+    }
+  })
+</script>
